@@ -10,8 +10,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class EntryRegistry {
@@ -23,56 +22,68 @@ public class EntryRegistry {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         try {
+            // 1) Auto-scan & overwrite JSON if enabled
+            if (Config.AUTOREGISTER_DATA.get()) {
+                List<SearchForSkills.CategoryData> auto = SearchForSkills.scan();
+                Files.createDirectories(file.getParent());
+                JsonArray arr = new JsonArray();
+                for (var cd : auto) {
+                    JsonObject o = new JsonObject();
+                    // exact match on that category ID
+                    o.addProperty("regex", "^" + Pattern.quote(cd.idPath()) + "$");
+                    o.addProperty("icon",   cd.iconId());
+                    arr.add(o);
+                }
+                Files.writeString(file, gson.toJson(arr));
+            }
+
+            // 2) If missing, seed defaults
             if (!Files.exists(file)) {
                 Files.createDirectories(file.getParent());
-
                 JsonArray defaults = new JsonArray();
-                defaults.add(makeEntry(".*mining.*",       "minecraft:iron_pickaxe", gson));
-                defaults.add(makeEntry(".*farming.*",       "minecraft:iron_hoe",    gson));
-                defaults.add(makeEntry(".*husbandry.*",     "minecraft:wheat",       gson));
-                defaults.add(makeEntry(".*fishing.*",       "minecraft:fishing_rod", gson));
-                defaults.add(makeEntry(".*adventuring.*",   "minecraft:iron_sword",  gson));
-
-                // write it out
+                defaults.add(makeEntry(".*mining.*",     "minecraft:iron_pickaxe", gson));
+                defaults.add(makeEntry(".*farming.*",     "minecraft:iron_hoe",    gson));
+                defaults.add(makeEntry(".*husbandry.*",   "minecraft:wheat",       gson));
+                defaults.add(makeEntry(".*fishing.*",     "minecraft:fishing_rod", gson));
+                defaults.add(makeEntry(".*adventuring.*", "minecraft:iron_sword",  gson));
                 Files.writeString(file, gson.toJson(defaults));
             }
 
-            // now read & parse
+            // 3) Read & populate ENTRIES
             try (Reader reader = Files.newBufferedReader(file)) {
-                JsonArray array = JsonParser.parseReader(reader).getAsJsonArray();
+                JsonElement root = JsonParser.parseReader(reader);
+                if (!root.isJsonArray()) {
+                    Skillsexpnotifier.LOGGER.warn("IconMappings.json isn’t an array, skipping.");
+                    return;
+                }
                 ENTRIES.clear();
-                for (JsonElement el : array) {
+                for (JsonElement el : root.getAsJsonArray()) {
                     JsonObject obj = el.getAsJsonObject();
-                    String regex = obj.get("regex").getAsString();
+                    String regex  = obj.get("regex").getAsString();
                     String iconId = obj.get("icon").getAsString();
 
-                    Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-                    Item item = ForgeRegistries.ITEMS.getValue( ResourceLocation.parse(iconId));
+                    Pattern p = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+                    Item item  = ForgeRegistries.ITEMS.getValue(ResourceLocation.parse(iconId));
                     ItemStack stack = item == null ? ItemStack.EMPTY : new ItemStack(item);
-
-                    ENTRIES.add(new Entry(pattern, stack));
+                    ENTRIES.add(new Entry(p, stack));
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Skillsexpnotifier.LOGGER.error("Failed loading IconMappings.json", e);
         }
     }
 
-    private static JsonObject makeEntry(String regex, String icon, Gson gson) {
+    private static JsonObject makeEntry(String regex, String icon, Gson g) {
         JsonObject o = new JsonObject();
         o.addProperty("regex", regex);
         o.addProperty("icon",   icon);
         return o;
     }
 
-    /**
-     * Given a category ID path (e.g. "mining_skills"), returns the first matching icon,
-     * or EMPTY if none matched.
-     */
     public static ItemStack getIconFor(String categoryPath) {
-        for (var entry : ENTRIES) {
-            if (entry.pattern.matcher(categoryPath).matches()) {
-                return entry.icon.copy();
+        for (var e : ENTRIES) {
+            if (e.pattern.matcher(categoryPath).matches()) {
+                return e.icon.copy();
             }
         }
         return ItemStack.EMPTY;
