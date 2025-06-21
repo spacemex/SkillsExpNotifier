@@ -9,7 +9,6 @@ import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.puffish.skillsmod.api.SkillsAPI;
 
 import java.util.HashMap;
@@ -52,7 +51,15 @@ public class Notifier {
 
                     if (total > prev) {
                         int gained = total - prev;
-                        customToasts.addToast(new XpToast(category, gained));
+                        // try to find an existing toast for this category
+                        XpToast existing = customToasts.getToast(XpToast.class, id);
+                        if (existing != null) {
+                            // just bump its counter
+                            existing.addGained(gained);
+                        } else {
+                            // create a new one
+                            customToasts.addToast(new XpToast(category, gained));
+                        }
                     }
                     lastTotals.put(id, total);
                 })
@@ -65,17 +72,5 @@ public class Notifier {
         if (customToasts != null) {
             customToasts.render(event.getGuiGraphics());
         }
-    }
-
-    @Mod.EventBusSubscriber(modid = Skillsexpnotifier.MODID, bus = Mod.EventBusSubscriber.Bus.MOD,value = Dist.CLIENT)
-    static class Reload{
-        @SubscribeEvent
-        public static void onReload(ModConfigEvent.Reloading configEvent){
-            if (configEvent.getConfig().getSpec() == Config.SPEC) {
-                Skillsexpnotifier.LOGGER.info("Reloading SkillExpNotifier Config");
-            }
-
-        }
-
     }
 }
