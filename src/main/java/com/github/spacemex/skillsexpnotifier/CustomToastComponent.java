@@ -15,13 +15,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * A drop-in copy of vanilla ToastComponent with customizable position.
- */
 @OnlyIn(Dist.CLIENT)
 public class CustomToastComponent {
-    //private static final int SLOT_COUNT = 5;
-    //private static final long ANIMATION_TIME = 600L;
 
     private final Minecraft minecraft;
     private final List<CustomToastInstance<?>> visible = new ArrayList<>();
