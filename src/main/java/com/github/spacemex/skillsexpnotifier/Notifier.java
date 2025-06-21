@@ -9,6 +9,7 @@ import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.puffish.skillsmod.api.SkillsAPI;
 
 import java.util.HashMap;
@@ -64,5 +65,17 @@ public class Notifier {
         if (customToasts != null) {
             customToasts.render(event.getGuiGraphics());
         }
+    }
+
+    @Mod.EventBusSubscriber(modid = Skillsexpnotifier.MODID, bus = Mod.EventBusSubscriber.Bus.MOD,value = Dist.CLIENT)
+    static class Reload{
+        @SubscribeEvent
+        public static void onReload(ModConfigEvent.Reloading configEvent){
+            if (configEvent.getConfig().getSpec() == Config.SPEC) {
+                Skillsexpnotifier.LOGGER.info("Reloading SkillExpNotifier Config");
+            }
+
+        }
+
     }
 }
