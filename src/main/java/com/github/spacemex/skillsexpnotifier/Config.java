@@ -21,7 +21,7 @@ public class Config {
         ANIMATION_DIRECTION = BUILDER.comment("The Direction Of The Toast Animation Options Are Left/Right (Direction It Come in From Left Side Or Right").define("Animation Direction","Left");
         MAX_TOASTS = BUILDER.comment("The Max Amount Of Toasts To Display").defineInRange("Max Toasts",5,1,5);
         ANIMATION_TIME = BUILDER.comment("The Amount Of Time The Toast Animation Will Take").defineInRange("Animation Time",600L,100L,10_000L);
-        AUTOREGISTER_DATA = BUILDER.comment("**Extremely Experimental** Automatically Register categories and set the icon ** Disables IconMappings.json **").define("Auto Register Data",false);
+        AUTOREGISTER_DATA = BUILDER.comment("**Extremely Experimental** Automatically Register categories and set the icon ** Overrides IconMappings.json **").define("Auto Register Data",false);
         SPEC = BUILDER.build();
     }
 
