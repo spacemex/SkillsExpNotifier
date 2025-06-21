@@ -23,4 +23,4 @@ side = "BOTH"
 [[dependencies."${mod_id}"]]
 modId = "puffish_skills"
 mandatory = true
-versionRange = "0.16.2,"
+versionRange = "[0.16.0,)"
