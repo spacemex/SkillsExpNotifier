@@ -29,10 +29,15 @@ public class CustomToastComponent {
     public CustomToastComponent(Minecraft minecraft) {
         this.minecraft = Objects.requireNonNull(minecraft);
     }
+    private boolean useToastControl() {
+        return Config.TOAST_CONTROL.get() && ToastConfig.isToastControlInstalled();
+    }
+
 
     /**
      * Queue a toast for display
      */
+    @SuppressWarnings("all")
     public void addToast(Toast toast) {
         if (net.minecraftforge.client.ForgeHooksClient.onToastAdd(toast)) return;
         queued.add(toast);
@@ -91,6 +96,27 @@ public class CustomToastComponent {
         return -1;
     }
 
+    /**
+     * @param pToastClass the Toast subclass
+     * @param token       what getToken() must match
+     * @return a live toast instance, or null
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Toast> T getToast(Class<? extends T> pToastClass, Object token) {
+        // 1) look in visible list
+        for (CustomToastInstance<?> inst : visible) {
+            Toast t = inst.toast;
+            if (pToastClass.isAssignableFrom(t.getClass()) && t.getToken().equals(token))
+                return (T) t;
+        }
+        // 2) look in queued
+        for (Toast t : queued) {
+            if (pToastClass.isAssignableFrom(t.getClass()) && t.getToken().equals(token))
+                return (T) t;
+        }
+        return null;
+    }
+
     @OnlyIn(Dist.CLIENT)
     private class CustomToastInstance<T extends Toast> {
         private final T toast;
@@ -106,9 +132,6 @@ public class CustomToastComponent {
             this.slotCount = slotCount;
         }
 
-        /**
-         * @return true if this toast is fully finished and can be removed
-         */
         public boolean render(int screenWidth, GuiGraphics graphics) {
             long now = Util.getMillis();
             if (animationTime < 0) {
@@ -118,6 +141,7 @@ public class CustomToastComponent {
             if (visibility == Toast.Visibility.SHOW && now - animationTime <= getAnimationTime()) {
                 visibleTime = now;
             }
+
             float t = (float) (now - animationTime) / getAnimationTime();
             t = Math.min(1f, Math.max(0f, t));
             float ease = t * t;
@@ -126,21 +150,54 @@ public class CustomToastComponent {
             }
 
             graphics.pose().pushPose();
-            if (determineDirection()) {
-                // slide in from the left instead of the right
-                graphics.pose().translate(
-                        getBaseX() - (1f - ease) * toast.width(),
-                        getBaseY() + index * toast.height(),
-                        800f
-                );
-            }else {
-                // slide in from the right instead of the left
-                graphics.pose().translate(
-                        getBaseX() + (1f - ease) * toast.width(),
-                        getBaseY() + index * toast.height(),
-                        800f
-                );
+
+            // --- begin custom slide/stack logic ---
+            boolean useTC = Config.TOAST_CONTROL.get() && ToastConfig.isToastControlInstalled();
+
+            // parse primary config direction
+            String dir = Config.ANIMATION_DIRECTION.get().toLowerCase();
+            boolean isLeft = dir.equals("left");
+            boolean isRight = dir.equals("right");
+            boolean isTop = dir.equals("top");
+            boolean isDown = dir.equals("down");
+
+            boolean noSlide = Config.NO_SLIDE.get();
+
+
+            // horizontal vs vertical slide?
+            boolean slideH = !noSlide && (useTC || isLeft || isRight);
+            boolean slideV = !noSlide && (isTop || isDown);
+
+            // slide from left?
+            boolean slideFromLeft =(isLeft && !isRight);
+
+            // stack top‐down?
+            boolean stackTopDown = (isTop && !isDown);
+
+            float x, y;
+            if (slideH) {
+                // slide horizontally, stack vertically
+                x = slideFromLeft
+                        ? getBaseX() - (1f - ease) * toast.width()
+                        : getBaseX() + (1f - ease) * toast.width();
+                y = getBaseY() + (stackTopDown
+                        ? index * toast.height()
+                        : -index * toast.height());
+            } else if (slideV) {
+                // slide vertically, stack horizontally
+                x = getBaseX() + (stackTopDown
+                        ? index * toast.width()
+                        : -index * toast.width());
+                y = isTop
+                        ? getBaseY() - (1f - ease) * toast.height()
+                        : getBaseY() + (1f - ease) * toast.height();
+            } else {
+                // vanilla fallback: slide from right, stack down
+                x = getBaseX() + (1f - ease) * toast.width();
+                y = getBaseY() + index * toast.height();
             }
+            graphics.pose().translate(x, y, 800f);
+            // --- end custom slide/stack logic ---
 
             Toast.Visibility newVis = toast.render(graphics, null, now - visibleTime);
             graphics.pose().popPose();
@@ -155,29 +212,24 @@ public class CustomToastComponent {
         }
     }
 
-    /**
-     *
-     * @return true if left else false
-     */
-    private boolean determineDirection(){
-        return getDirection().equals("left");
-    }
-
     private int getBaseX(){
         return Config.X_OFFSET.get();
     }
     private int getBaseY(){
         return Config.Y_OFFSET.get();
     }
-    private String getDirection(){
-        return Config.ANIMATION_DIRECTION.get().toString().toLowerCase();
-    }
 
     private int getSlotCount(){
+        if (useToastControl()){
+            return Math.max(1,ToastConfig.toastCount());
+        }
         return Config.MAX_TOASTS.get() < 1 ? 1 : Config.MAX_TOASTS.get();
     }
 
     private long getAnimationTime(){
-        return Config.ANIMATION_TIME.get() <= 0 ? 600L : Config.ANIMATION_TIME.get();
+        if (useToastControl()){
+            return ToastConfig.forceTime();
+        }
+        return Config.ANIMATION_TIME.get() <= 0 ? 6000L : Config.ANIMATION_TIME.get();
     }
 }
