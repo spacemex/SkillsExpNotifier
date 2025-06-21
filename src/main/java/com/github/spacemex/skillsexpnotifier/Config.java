@@ -6,15 +6,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 public class Config {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    /**
-     * Todo
-     * Control The Alpha Of Text And Background
-     * Parity For Toast Control
-     * Disable Background
-     * Single String
-     * Configurable Title, Xp
-     * Placeholders For EXP, Player, Skill Title
-     */
     public static final ForgeConfigSpec.ConfigValue<Integer> X_OFFSET; // Starting X Left/Right
     public static final ForgeConfigSpec.ConfigValue<Integer> Y_OFFSET; // Starting Y Up/Down
     public static final ForgeConfigSpec.ConfigValue<String> ANIMATION_DIRECTION; // Left / Right
