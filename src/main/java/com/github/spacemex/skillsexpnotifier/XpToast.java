@@ -39,11 +39,25 @@ public class XpToast implements Toast {
             graphics.renderItem(iconStack, 6, 6);
         }
 
-        // draw title and XP gained
-        graphics.drawString(mc.font, title, 30, 8,  0xFFFFFF, false);
-        graphics.drawString(mc.font, "+" + gained + " XP", 30, 18, 0xFFFFFF, false);
+        // prepare title text with bold if configured
+        String titleText = Config.BOLD_TITLE.get() ? "§l" + title : title;
+        // draw title drop shadow if configured
+        if (Config.TITLE_DROPSHADOW.get()) {
+            graphics.drawString(mc.font, titleText, 31, 9, Config.TITLE_DROPSHADOW_COLOR.get(), false);
+        }
+        // draw title text
+        graphics.drawString(mc.font, titleText, 30, 8, Config.TITLE_COLOR.get(), false);
 
-        // how long to show
+        // prepare XP text with bold if configured
+        String xpText = (Config.BOLD_EXP.get() ? "§l" : "") + "+" + gained + " XP";
+        // draw XP drop shadow if configured
+        if (Config.EXP_DROPSHADOW.get()) {
+            graphics.drawString(mc.font, xpText, 31, 19, Config.EXP_DROPSHADOW_COLOR.get(), false);
+        }
+        // draw XP text
+        graphics.drawString(mc.font, xpText, 30, 18, Config.EXP_COLOR.get(), false);
+
+        // duration
         return (startTime < 1_000L) ? Visibility.SHOW : Visibility.HIDE;
     }
 
@@ -52,12 +66,9 @@ public class XpToast implements Toast {
         return NO_TOKEN;
     }
 
-    // helper to prettify the category ID
     public static String formatCategoryName(String rawPath) {
         return java.util.Arrays.stream(rawPath.split("_"))
-                .map(w -> w.isEmpty()
-                        ? w
-                        : Character.toUpperCase(w.charAt(0)) + w.substring(1))
+                .map(w -> w.isEmpty() ? w : Character.toUpperCase(w.charAt(0)) + w.substring(1))
                 .collect(java.util.stream.Collectors.joining(" "));
     }
 }
