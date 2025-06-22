@@ -132,6 +132,26 @@ public class CustomToastComponent {
             this.slotCount = slotCount;
         }
 
+        /**
+         * Renders this toast instance at a custom anchor point.
+         * <p>
+         * Anchor reference:
+         * • X axis (horizontal):
+         * – getBaseX() is your configured “base” offset from the left edge.
+         * – 0 = left edge of the screen; screenWidth = right edge.
+         * – slideFromLeft true → toast slides in from the left; false → from the right.
+         * • Y axis (vertical):
+         * – getBaseY() is your configured “base” offset from the top.
+         * – 0 = very top; screenHeight = bottom of the window.
+         * – stackTopDown true → each toast moves downward by index×height;
+         * false → stacks upward.
+         * • Z axis (depth):
+         * – 800.0f fixes the toast in front of almost all other GUI elements
+         * (higher Z draws “closer” to the camera in Minecraft’s UI).
+         * <p>
+         * Depending on whether you’ve chosen a horizontal or vertical slide, we
+         * offset by (1-ease)×width or (1-ease)×height to animate the pop-in.
+         */
         public boolean render(int screenWidth, GuiGraphics graphics) {
             long now = Util.getMillis();
             if (animationTime < 0) {
@@ -151,53 +171,95 @@ public class CustomToastComponent {
 
             graphics.pose().pushPose();
 
-            // --- begin custom slide/stack logic ---
-            boolean useTC = Config.TOAST_CONTROL.get() && ToastConfig.isToastControlInstalled();
+            // --- custom anchor/slide logic start ---
+            // compute static anchor based on config
+            String anchor = Config.ANCHOR_POSITION.get().toLowerCase();
+            float anchorX, anchorY;
+            int toastW = toast.width(), toastH = toast.height();
+            int screenH = graphics.guiHeight();
 
-            // parse primary config direction
+            switch (anchor) {
+                case "top-left" -> {
+                    anchorX = 0;
+                    anchorY = 0;
+                }
+                case "top-center" -> {
+                    anchorX = (screenWidth - toastW) / 2f;
+                    anchorY = 0;
+                }
+                case "top-right" -> {
+                    anchorX = screenWidth - toastW;
+                    anchorY = 0;
+                }
+                case "middle-left" -> {
+                    anchorX = 0;
+                    anchorY = (screenH - toastH) / 2f;
+                }
+                case "middle-center",
+                     "center" -> {
+                    anchorX = (screenWidth - toastW) / 2f;
+                    anchorY = (screenH - toastH) / 2f;
+                }
+                case "middle-right" -> {
+                    anchorX = screenWidth - toastW;
+                    anchorY = (screenH - toastH) / 2f;
+                }
+                case "bottom-left" -> {
+                    anchorX = 0;
+                    anchorY = screenH - toastH;
+                }
+                case "bottom-center" -> {
+                    anchorX = (screenWidth - toastW) / 2f;
+                    anchorY = screenH - toastH;
+                }
+                case "bottom-right" -> {
+                    anchorX = screenWidth - toastW;
+                    anchorY = screenH - toastH;
+                }
+                default -> {
+                    anchorX = screenWidth - toastW;
+                    anchorY = screenH - toastH;
+                }
+            }
+
+            // determine slide/stack direction
             String dir = Config.ANIMATION_DIRECTION.get().toLowerCase();
             boolean isLeft = dir.equals("left");
             boolean isRight = dir.equals("right");
             boolean isTop = dir.equals("top");
             boolean isDown = dir.equals("down");
-
             boolean noSlide = Config.NO_SLIDE.get();
 
-
-            // horizontal vs vertical slide?
-            boolean slideH = !noSlide && (useTC || isLeft || isRight);
+            boolean slideH = !noSlide && (isLeft || isRight);
             boolean slideV = !noSlide && (isTop || isDown);
+            boolean slideFromLeft = isLeft && !isRight;
+            boolean stackTopDown = isTop && !isDown;
 
-            // slide from left?
-            boolean slideFromLeft =(isLeft && !isRight);
-
-            // stack top‐down?
-            boolean stackTopDown = (isTop && !isDown);
+            float slideX = (1f - ease) * toastW;
+            float slideY = (1f - ease) * toastH;
 
             float x, y;
             if (slideH) {
-                // slide horizontally, stack vertically
                 x = slideFromLeft
-                        ? getBaseX() - (1f - ease) * toast.width()
-                        : getBaseX() + (1f - ease) * toast.width();
-                y = getBaseY() + (stackTopDown
-                        ? index * toast.height()
-                        : -index * toast.height());
+                        ? anchorX - slideX
+                        : anchorX + slideX;
+                y = anchorY + (stackTopDown
+                        ? index * toastH
+                        : -index * toastH);
             } else if (slideV) {
-                // slide vertically, stack horizontally
-                x = getBaseX() + (stackTopDown
-                        ? index * toast.width()
-                        : -index * toast.width());
+                x = anchorX + (stackTopDown
+                        ? index * toastW
+                        : -index * toastW);
                 y = isTop
-                        ? getBaseY() - (1f - ease) * toast.height()
-                        : getBaseY() + (1f - ease) * toast.height();
+                        ? anchorY - slideY
+                        : anchorY + slideY;
             } else {
                 // vanilla fallback: slide from right, stack down
-                x = getBaseX() + (1f - ease) * toast.width();
-                y = getBaseY() + index * toast.height();
+                x = anchorX + slideX;
+                y = anchorY + index * toastH;
             }
             graphics.pose().translate(x, y, 800f);
-            // --- end custom slide/stack logic ---
+            // --- custom anchor/slide logic end ---
 
             Toast.Visibility newVis = toast.render(graphics, null, now - visibleTime);
             graphics.pose().popPose();
