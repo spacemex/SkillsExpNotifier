@@ -34,6 +34,8 @@ public class Config {
     public static final ForgeConfigSpec.BooleanValue FORCE_INLINE;
     public static final ForgeConfigSpec.ConfigValue<String> TITLE_OVERIDE;
     public static final ForgeConfigSpec.ConfigValue<String> EXP_OVERIDE;
+    public static final ForgeConfigSpec.ConfigValue<String> ANCHOR_POSITION;
+
 
 
     public static final ForgeConfigSpec SPEC;
@@ -55,6 +57,13 @@ public class Config {
         BUILDER.pop();
 
         BUILDER.push("Text Settings");
+        ANCHOR_POSITION = BUILDER
+                .comment("""
+                        Where to anchor toasts on screen: \
+                        "top-left", "top-center", "top-right",
+                        "middle-left", "middle-center", "middle-right",
+                        "bottom-left", "bottom-center", "bottom-right\"""")
+                .define("Anchor Position", "bottom-right");
         TITLE_OVERIDE = BUILDER.comment("The Title Part To Display").define("Title", "%title%");
         EXP_OVERIDE = BUILDER.comment("The Exp Part Of The Message").define("Exp", " +%exp% xp");
         FORCE_INLINE = BUILDER.comment("Should the text be forced to be inline").define("Force Inline",false);
