@@ -35,6 +35,12 @@ public class Config {
     public static final ForgeConfigSpec.ConfigValue<String> TITLE_OVERIDE;
     public static final ForgeConfigSpec.ConfigValue<String> EXP_OVERIDE;
     public static final ForgeConfigSpec.ConfigValue<String> ANCHOR_POSITION;
+    public static final ForgeConfigSpec.IntValue EXP_SIZE;
+    public static final ForgeConfigSpec.IntValue TITLE_SIZE;
+    public static final ForgeConfigSpec.IntValue ICON_SIZE;
+    public static final ForgeConfigSpec.IntValue BACKGROUD_SIZE_H;
+    public static final ForgeConfigSpec.IntValue BACKGROUD_SIZE_W;
+
 
 
 
@@ -70,6 +76,11 @@ public class Config {
         TITLE_ALPHA = BUILDER.comment("The Alpha Of The Title").defineInRange("Title Alpha",127,0,255);
         EXP_ALPHA = BUILDER.comment("The Alpha Of The Exp Amount").defineInRange("Exp Alpha",127,0,255);
 
+        TITLE_SIZE = BUILDER.comment("The Size Of The Title").defineInRange("Title Size",12,1,32);
+        EXP_SIZE = BUILDER.comment("The Size Of The Exp Amount").defineInRange("Exp Size",12,1,32);
+        ICON_SIZE = BUILDER.comment("The Size Of The Icon").defineInRange("Icon Size",16,1,32);
+        BACKGROUD_SIZE_H = BUILDER.comment("The Height Of The Background").defineInRange("Background Height",32,1,1000);
+        BACKGROUD_SIZE_W = BUILDER.comment("The Width Of The Background").defineInRange("Background Width",160,1,1000);
         BUILDER.push("Text Style");
         TITLE_COLOR = BUILDER.comment("The Color Of The Title").define("Title Color",0xFFFFFF);
         EXP_COLOR = BUILDER.comment("The Color Of The Exp Amount").define("Exp Color",0xFFFFFF);
