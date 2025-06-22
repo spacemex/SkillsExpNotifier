@@ -40,6 +40,8 @@ public class Config {
     public static final ForgeConfigSpec.IntValue ICON_SIZE;
     public static final ForgeConfigSpec.IntValue BACKGROUD_SIZE_H;
     public static final ForgeConfigSpec.IntValue BACKGROUD_SIZE_W;
+    public static final ForgeConfigSpec.IntValue ICON_X;
+    public static final ForgeConfigSpec.IntValue ICON_Y;
 
 
 
@@ -53,6 +55,12 @@ public class Config {
         ANIMATION_DIRECTION = BUILDER.comment("The Direction Of The Toast Animation Options Are Left/Right (Direction It Come in From Left, Right, Top, Down").define("Animation Direction","Left");
         X_OFFSET = BUILDER.comment("The Left / Right Offset Of The Toast").define("Base X",5);
         Y_OFFSET = BUILDER.comment("The Up / Down Offset Of The Toast").define("Base Y",50);
+        ICON_X = BUILDER
+                .comment("Horizontal pixel offset for the icon")
+                .defineInRange("Icon X Offset", 6, 0, 100);
+        ICON_Y = BUILDER
+                .comment("Vertical pixel offset for the icon")
+                .defineInRange("Icon Y Offset", 6, 0, 100);
         STACK_XP_TIMER = BUILDER.comment("How long (in ms) a stacked/updated XP toast stays visible after the last gain").defineInRange("Stack XP Timer", 1000L, 100L, 10_000L);
         ANIMATION_TIME = BUILDER.comment("How long (in ms) the toast animation takes to complete(Ignored if Toast Control Is Enabled").defineInRange("Animation Time", 1000L, 100L, 10_000L);
         NO_SLIDE = BUILDER.comment("Should the toasts slide out of the way when they are added?").define("No Slide",false);
