@@ -64,9 +64,10 @@ public class XpToast implements Toast {
             float iconScale = Config.ICON_SIZE.get() / 16f;
             graphics.pose().pushPose();
             graphics.pose().scale(iconScale, iconScale, 1f);
-            // pos (6, center vertically in bgH) adjusted by scale
-            int x0 = (int) (6f / iconScale);
-            int y0 = (int) (((bgH / 2f - 8f) / iconScale));
+
+            int x0 = (int)(Config.ICON_X.get() / iconScale);
+            int y0 = (int)(Config.ICON_Y.get() / iconScale);
+
             graphics.renderItem(iconStack, x0, y0);
             graphics.pose().popPose();
         }
