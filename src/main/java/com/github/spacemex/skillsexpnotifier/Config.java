@@ -4,6 +4,11 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
 public class Config {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static final String CONFIG_PATH = "SkillExpNotifier/config.toml";
@@ -44,8 +49,9 @@ public class Config {
     public static final ForgeConfigSpec.IntValue ICON_X;
     public static final ForgeConfigSpec.IntValue ICON_Y;
     public static final ForgeConfigSpec.BooleanValue ENABLE_FILE_WATCHER;
-
-
+    public static final ForgeConfigSpec.BooleanValue DISABLE_TOAST_SOUNDS;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> SOUND_MAPPINGS_IN;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> SOUND_MAPPINGS_OUT;
 
 
     public static final ForgeConfigSpec SPEC;
@@ -133,7 +139,34 @@ public class Config {
                 .define("Exp Drop Shadow Color",0x000000);
         TITLE_DROPSHADOW_COLOR = BUILDER.comment("The Color Of The Title Drop Shadow")
                 .define("Title Drop Shadow Color",0x000000);
+
         BUILDER.pop();
+        BUILDER.pop();
+
+        BUILDER.push("Sounds");
+        DISABLE_TOAST_SOUNDS = BUILDER.comment("Disable All Sounds Made By Toast")
+                        .define("Disable Toast Sounds",false);
+        List<String> defaultsIn = List.of(
+                "minecraft:overworld=minecraft:ui.toast.in",
+                "minecraft:the_nether=minecraft:ui.toast.in",
+                "minecraft:the_end=minecraft:ui.toast.in"
+        );
+        SOUND_MAPPINGS_IN = BUILDER
+                .comment("A list of \"dimension=sound_event\" entries for the toast-in sound")
+                .defineList("Sound Mapping In", defaultsIn,
+                        o -> (o instanceof String) && ((String)o).contains("=")
+                );
+        List<String> defaultsOut = List.of(
+                "minecraft:overworld=minecraft:ui.toast.out",
+                "minecraft:the_nether=minecraft:ui.toast.out",
+                "minecraft:the_end=minecraft:ui.toast.out"
+        );
+        SOUND_MAPPINGS_OUT = BUILDER
+                .comment("A list of \"dimension=sound_event\" entries for the toast-out sound")
+                .defineList("Sound Mapping Out", defaultsOut,
+                        o -> (o instanceof String) && ((String)o).contains("=")
+                );
+
         BUILDER.pop();
 
         SPEC = BUILDER.build();
@@ -141,6 +174,27 @@ public class Config {
 
     public static void register(FMLJavaModLoadingContext modLoadingContext) {
         modLoadingContext.registerConfig(ModConfig.Type.CLIENT,SPEC, CONFIG_PATH);
+    }
+
+    private static Map<String,String> parseMappings(List<String> raw) {
+        var map = new HashMap<String,String>();
+        for (String entry : raw) {
+            var split = entry.split("=", 2);
+            if (split.length == 2) {
+                map.put(split[0].trim(), split[1].trim());
+            }
+        }
+        return map;
+    }
+
+    public static String getSoundInForDimension(String dimId) {
+        Map<String,String> m = parseMappings((List<String>) Config.SOUND_MAPPINGS_IN.get());
+        return m.getOrDefault(dimId, "minecraft:ui.toast.in");
+    }
+
+    public static String getSoundOutForDimension(String dimId) {
+        Map<String,String> m = parseMappings((List<String>) Config.SOUND_MAPPINGS_OUT.get());
+        return m.getOrDefault(dimId, "minecraft:ui.toast.out");
     }
 
 }
