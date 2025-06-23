@@ -19,7 +19,6 @@ public class Skillsexpnotifier {
         MinecraftForge.EVENT_BUS.register(this);
         context.getModEventBus().addListener(this::onClientSetup);
         context.getModEventBus().addListener(this::onCommonSetup);
-        //MinecraftForge.EVENT_BUS.register(ConfigWatcher.class);
         Config.register(context);
     }
 
