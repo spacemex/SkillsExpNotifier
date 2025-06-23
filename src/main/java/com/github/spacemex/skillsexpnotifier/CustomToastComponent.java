@@ -222,6 +222,10 @@ public class CustomToastComponent {
                 }
             }
 
+            // Add Back The Offsets :P
+            anchorX += getBaseX();
+            anchorY += getBaseY();
+
             // determine slide/stack direction
             String dir = Config.ANIMATION_DIRECTION.get().toLowerCase();
             boolean isLeft = dir.equals("left");
