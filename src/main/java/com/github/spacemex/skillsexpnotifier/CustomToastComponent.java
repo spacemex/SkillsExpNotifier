@@ -5,15 +5,14 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.toasts.Toast;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @OnlyIn(Dist.CLIENT)
 public class CustomToastComponent {
@@ -156,8 +155,19 @@ public class CustomToastComponent {
             long now = Util.getMillis();
             if (animationTime < 0) {
                 animationTime = now;
-                visibility.playSound(minecraft.getSoundManager());
+                if (!Config.DISABLE_TOAST_SOUNDS.get()){
+                    String dimKey = minecraft.level.dimension().location().toString();
+                    if (dimKey.isEmpty()) dimKey = "minecraft:overworld";
+                    SoundEvent inSound = ForgeRegistries.SOUND_EVENTS.getValue(ResourceLocation.parse(Config.getSoundInForDimension(dimKey)));
+                    if (inSound != null){
+                        minecraft.getSoundManager().play(SimpleSoundInstance.forUI(inSound, 1f,1f));
+                    }else {
+                        Skillsexpnotifier.LOGGER.warn("Sound For Toast In Not Found: {} Using Default Sound For Toast In", Config.getSoundOutForDimension(dimKey));
+                        visibility.playSound(minecraft.getSoundManager());
+                    }
+                }
             }
+            //Keeps Toast On Screen When Updating
             if (visibility == Toast.Visibility.SHOW && now - animationTime <= getAnimationTime()) {
                 visibleTime = now;
             }
@@ -271,7 +281,17 @@ public class CustomToastComponent {
             if (newVis != visibility) {
                 animationTime = now - (long) ((1f - ease) * getAnimationTime());
                 visibility = newVis;
-                visibility.playSound(minecraft.getSoundManager());
+                if (!Config.DISABLE_TOAST_SOUNDS.get()){
+                    String dimKey = minecraft.level.dimension().location().toString();
+                    if (dimKey.isEmpty()) dimKey = "minecraft:overworld";
+                    SoundEvent outSound = ForgeRegistries.SOUND_EVENTS.getValue(ResourceLocation.parse(Config.getSoundOutForDimension(dimKey)));
+                    if (outSound != null){
+                        minecraft.getSoundManager().play(SimpleSoundInstance.forUI(outSound, 1f,1f));
+                    }else {
+                        Skillsexpnotifier.LOGGER.warn("Sound For Toast Out Not Found: {} Using Default Sound For Toast Out", Config.getSoundOutForDimension(dimKey));
+                        visibility.playSound(minecraft.getSoundManager());
+                    }
+                }
             }
 
             return visibility == Toast.Visibility.HIDE && now - animationTime > getAnimationTime();
