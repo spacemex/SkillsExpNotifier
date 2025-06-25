@@ -1,7 +1,10 @@
-package com.github.spacemex.skillsexpnotifier;
+package com.github.spacemex.skillsexpnotifier.client;
 
+import com.github.spacemex.skillsexpnotifier.Skillsexpnotifier;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLPaths;
 
@@ -12,7 +15,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
+@OnlyIn(Dist.CLIENT)
 public class SearchForSkills {
     private static final Path GAME_DIR      = FMLPaths.GAMEDIR.get();
     private static final Path KUBEJS_DIR    = GAME_DIR.resolve("kubejs");
