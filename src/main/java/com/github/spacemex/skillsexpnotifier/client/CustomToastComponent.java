@@ -1,5 +1,7 @@
-package com.github.spacemex.skillsexpnotifier;
+package com.github.spacemex.skillsexpnotifier.client;
 
+import com.github.spacemex.skillsexpnotifier.Config;
+import com.github.spacemex.skillsexpnotifier.Skillsexpnotifier;
 import com.google.common.collect.Queues;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -36,11 +38,30 @@ public class CustomToastComponent {
     /**
      * Queue a toast for display
      */
-    @SuppressWarnings("all")
-    public void addToast(Toast toast) {
-        if (net.minecraftforge.client.ForgeHooksClient.onToastAdd(toast)) return;
-        queued.add(toast);
-    }
+   public void addToast(Toast toast) {
+       if (net.minecraftforge.client.ForgeHooksClient.onToastAdd(toast)) return;
+       // 1) try to merge into any *visible* toast with the same token
+       XpToast existingVisible = getToast(XpToast.class, toast.getToken());
+       if (existingVisible != null && toast instanceof XpToast incoming) {
+           existingVisible.addGained(incoming.getGained());
+           Skillsexpnotifier.LOGGER.debug("Merged Visible toast {} and {}", existingVisible, toast);
+           return;
+       }
+
+       // 2) try to merge into any *queued* toast with the same token
+       for (Toast queuedToast : queued) {
+           if (queuedToast instanceof XpToast queuedXp &&
+                   queuedToast.getClass() == toast.getClass() &&
+                   Objects.equals(queuedToast.getToken(), toast.getToken())) {
+               queuedXp.addGained(((XpToast) toast).getGained());
+               Skillsexpnotifier.LOGGER.debug("Merged toasts {} and {}", queuedToast, toast);
+               return;
+           }
+       }
+       // 3) otherwise, enqueue a brand‐new one
+       queued.add(toast);
+       Skillsexpnotifier.LOGGER.debug("Queued toast {}", toast);
+   }
 
     /**
      * Render all toasts at the custom position.
@@ -269,7 +290,7 @@ public class CustomToastComponent {
                         : anchorY + slideY;
             } else {
                 // vanilla fallback: slide from right, stack down
-                x = anchorX + slideX;
+                x = anchorX;
                 y = anchorY + index * toastH;
             }
             graphics.pose().translate(x, y, 800f);
@@ -294,7 +315,14 @@ public class CustomToastComponent {
                 }
             }
 
-            return visibility == Toast.Visibility.HIDE && now - animationTime > getAnimationTime();
+            //return visibility == Toast.Visibility.HIDE && now - animationTime > getAnimationTime();
+            boolean finished;
+            if (toast instanceof XpToast xp){
+                finished = now - xp.getLastUpdateTime() > Config.STACK_XP_TIMER.get();
+            }else {
+                finished = visibility == Toast.Visibility.HIDE && now - animationTime > getAnimationTime();
+            }
+            return finished;
         }
     }
 
@@ -309,7 +337,7 @@ public class CustomToastComponent {
         if (useToastControl()){
             return Math.max(1,ToastConfig.toastCount());
         }
-        return Config.MAX_TOASTS.get() < 1 ? 1 : Config.MAX_TOASTS.get();
+        return Math.max(1,Config.MAX_TOASTS.get());
     }
 
     private long getAnimationTime(){
