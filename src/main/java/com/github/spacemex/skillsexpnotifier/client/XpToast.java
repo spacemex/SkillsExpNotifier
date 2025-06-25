@@ -1,5 +1,6 @@
-package com.github.spacemex.skillsexpnotifier;
+package com.github.spacemex.skillsexpnotifier.client;
 
+import com.github.spacemex.skillsexpnotifier.Config;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -8,20 +9,24 @@ import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.client.gui.components.toasts.ToastComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
-import net.puffish.skillsmod.api.Category;
 
 import java.util.function.BiConsumer;
-
+@OnlyIn(Dist.CLIENT)
 public class XpToast implements Toast {
     private static final ResourceLocation BG = Toast.TEXTURE;
-    private final Category category;
+    private final ResourceLocation categoryId;
     private int gained;
     private long lastUpdateTime;
 
 
-    public XpToast(Category category, int gained) {
-        this.category = category;
+    public int getGained() {
+        return gained;
+    }
+    public XpToast(ResourceLocation categoryID, int gained) {
+        this.categoryId = categoryID;
         this.gained = gained;
         this.lastUpdateTime = Util.getMillis();
     }
@@ -57,7 +62,7 @@ public class XpToast implements Toast {
         }
 
         // ─── ICON ────────────────────────────────────────────────────────────────
-        String path = category.getId().getPath();
+        String path = categoryId.getPath();
         String title = formatCategoryName(path);
         ItemStack iconStack = EntryRegistry.getIconFor(path);
         if (!iconStack.isEmpty()) {
@@ -145,12 +150,16 @@ public class XpToast implements Toast {
 
     @Override
     public @NotNull Object getToken() {
-        return category.getId();
+        return categoryId;
     }
 
     public static String formatCategoryName(String rawPath) {
         return java.util.Arrays.stream(rawPath.split("_"))
                 .map(w -> w.isEmpty() ? w : Character.toUpperCase(w.charAt(0)) + w.substring(1))
                 .collect(java.util.stream.Collectors.joining(" "));
+    }
+
+    public long getLastUpdateTime() {
+        return lastUpdateTime;
     }
 }
