@@ -1,11 +1,14 @@
-package com.github.spacemex.skillsexpnotifier;
+package com.github.spacemex.skillsexpnotifier.client;
 
+import com.github.spacemex.skillsexpnotifier.Config;
+import com.github.spacemex.skillsexpnotifier.Skillsexpnotifier;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-
+@OnlyIn( Dist.CLIENT)
 public class ToastConfig {
     private static ModConfig TOAST_CONTROL;
 
