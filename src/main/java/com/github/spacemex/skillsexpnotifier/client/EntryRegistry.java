@@ -1,9 +1,13 @@
-package com.github.spacemex.skillsexpnotifier;
+package com.github.spacemex.skillsexpnotifier.client;
 
+import com.github.spacemex.skillsexpnotifier.Config;
+import com.github.spacemex.skillsexpnotifier.Skillsexpnotifier;
 import com.google.gson.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.io.IOException;
@@ -12,7 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
-
+@OnlyIn(Dist.CLIENT)
 public class EntryRegistry {
     private record Entry(Pattern pattern, ItemStack icon) {}
     private static final List<Entry> ENTRIES = new ArrayList<>();
