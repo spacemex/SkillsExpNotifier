@@ -150,6 +150,10 @@ public class CustomToastComponent {
             this.toast = toast;
             this.index = index;
             this.slotCount = slotCount;
+
+            if (toast instanceof XpToast xpToast){
+                xpToast.addGained(0);
+            }
         }
 
         /**
