@@ -39,6 +39,7 @@ public class CustomToastComponent {
      * Queue a toast for display
      */
    public void addToast(Toast toast) {
+       if (Config.DISABLE_TOASTS.get()) return;
        if (net.minecraftforge.client.ForgeHooksClient.onToastAdd(toast)) return;
        // 1) try to merge into any *visible* toast with the same token
        XpToast existingVisible = getToast(XpToast.class, toast.getToken());
