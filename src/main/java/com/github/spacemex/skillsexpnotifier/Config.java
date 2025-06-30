@@ -51,12 +51,15 @@ public class Config {
     public static final ForgeConfigSpec.BooleanValue DISABLE_TOAST_SOUNDS;
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> SOUND_MAPPINGS_IN;
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> SOUND_MAPPINGS_OUT;
+    public static final ForgeConfigSpec.BooleanValue DISABLE_TOASTS;
 
 
     public static final ForgeConfigSpec SPEC;
     static {
         BUILDER.push("Settings");
-        ENABLE_FILE_WATCHER = BUILDER.comment("Enable The Built-In File Watcher, Checks If This File Is Modified And Reloads The Config(Bypass Forge Mod Reloading")
+        DISABLE_TOASTS = BUILDER.comment("Completely Disable The Client Side Functionality")
+                .define("Disable Toasts",false);
+        ENABLE_FILE_WATCHER = BUILDER.comment("Enable The Built-In File Watcher, Checks If This File Is Modified And Reloads The Config(Bypass Forge Reloading)")
                 .define("Enable File Watcher",true);
         TOAST_CONTROL = BUILDER.comment("Enable Toast Control")
                 .define("Toast Control",false);
