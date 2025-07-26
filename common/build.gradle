@@ -1,0 +1,41 @@
+plugins {
+    id 'com.github.johnrengelman.shadow'
+}
+
+architectury {
+    common( rootProject.enabled_platforms.split(','))
+}
+
+// Create configurations for shading
+configurations {
+    shade
+    compileClasspath.extendsFrom shade
+    runtimeClasspath.extendsFrom shade
+}
+
+dependencies {
+    // We depend on Fabric Loader here to use the Fabric @Environment annotations,
+    // which get remapped to the correct annotations on each platform.
+    // Do NOT use other classes from Fabric Loader.
+    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+
+
+    // Also make them available at compile time
+    compileOnly("org.yaml:snakeyaml:2.4")
+    compileOnly('com.github.spacemex:SimpleConfigApi:manual-5')
+    //compileOnly ("net.puffish:skillmod:0.16.2+1.20")
+}
+
+// Configure the shadow jar task
+shadowJar {
+    configurations = [project.configurations.shade]
+    archiveClassifier = "dev-shadow"
+
+    // Relocate packages to avoid conflicts
+    //relocate 'org.yaml.snakeyaml', 'com.github.spacemex.skillexpnotifier.shaded.snakeyaml'
+    //relocate 'com.github.spacemex.simpleconfigapi', 'com.github.spacemex.skillexpnotifier.shaded.simpleconfigapi'
+}
+
+// Make sure the shadowed JAR is used
+components.java.withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) { skip() }

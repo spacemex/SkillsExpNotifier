@@ -1,0 +1,66 @@
+plugins {
+    id 'dev.architectury.loom' version '1.10-SNAPSHOT' apply false
+    id 'architectury-plugin' version '3.4-SNAPSHOT'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+}
+
+architectury {
+    minecraft = project.minecraft_version
+}
+
+allprojects {
+    group = rootProject.maven_group
+    version = rootProject.mod_version
+}
+
+subprojects {
+    apply plugin: 'dev.architectury.loom'
+    apply plugin: 'architectury-plugin'
+    apply plugin: 'maven-publish'
+
+    base {
+        archivesName = "$rootProject.archives_name-$project.name"
+    }
+
+    repositories {
+        maven { url 'https://jitpack.io' }
+        maven { url = uri("https://maven.puffish.net") }
+
+    }
+
+    dependencies {
+        minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
+        mappings loom.officialMojangMappings()
+
+        // Common For All Three Launcher
+        //implementation("org.yaml:snakeyaml:2.4")// Sill Need Snake Yaml For Reading
+        //implementation 'com.github.spacemex:SimpleConfigApi:manual-5'// Custom Config Api
+
+        // 	modImplementation("net.puffish:skillsmod:<version>:fabric") Fabric
+        // 	compileOnly("net.puffish:skillsmod:<version>:forge") Forge
+        // 	compileOnly fg.deobf("net.puffish:skillsmod:<version>:neoforge") NeoForge
+    }
+
+    java {
+        withSourcesJar()
+
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.release = 17
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = base.archivesName.get()
+                from components.java
+            }
+        }
+
+        repositories {
+        }
+    }
+}

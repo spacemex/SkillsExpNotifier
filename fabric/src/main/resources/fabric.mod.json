@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "skillexpnotifier",
+  "version": "${version}",
+  "name": "SkillExpNotifier",
+  "description": "A Simple Highly Customizable Toast For Puffish Skill Api",
+  "authors": [
+    "space_mex"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/skillexpnotifier"
+  },
+  "license": "MIT",
+  "icon": "assets/skillexpnotifier/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.github.spacemex.skillexpnotifier.fabric.SkillexpnotifierFabric"
+    ],
+    "client": [
+      "com.github.spacemex.skillexpnotifier.fabric.client.SkillexpnotifierFabricClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "architectury": ">=9.2.14",
+    "fabric-api": "*",
+    "puffish_skills": ">=0.16.0"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

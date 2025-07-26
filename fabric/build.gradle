@@ -1,0 +1,95 @@
+plugins {
+    id 'com.github.johnrengelman.shadow'
+}
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+configurations {
+    common {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+
+    // Files in this configuration will be bundled into your mod using the Shadow plugin.
+    // Don't use the `shadow` configuration from the plugin itself as it's meant for excluding files.
+    //shadowBundle {
+        //canBeResolved = true
+        //canBeConsumed = false
+    //}
+    shaded
+    implementation.extendsFrom(shaded)
+}
+
+dependencies {
+    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+
+    modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
+
+    modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
+
+    modImplementation("net.puffish:skillsmod:0.16.2+1.20:fabric")
+
+
+    common(project(path: ':common', configuration: 'namedElements')) { transitive false }
+    //shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
+
+    // Add dependencies to be shaded - changed from implementation to shaded
+    shaded("org.yaml:snakeyaml:2.4")
+    shaded('com.github.spacemex:SimpleConfigApi:manual-5')
+
+
+
+    include("org.yaml:snakeyaml:2.4")
+    include('com.github.spacemex:SimpleConfigApi:manual-5')
+
+}
+
+processResources {
+    inputs.property 'version', project.version
+
+    filesMatching('fabric.mod.json') {
+        expand version: project.version
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.shaded]
+    archiveClassifier = 'dev-shadow'
+
+    from(project(":common").sourceSets.main.output)
+
+    from(sourceSets.main.output)
+
+    relocate 'org.yaml.snakeyaml', 'com.github.spacemex.skillexpnotifier.shaded.snakeyaml'
+    relocate 'com.github.spacemex.simpleconfigapi', 'com.github.spacemex.skillexpnotifier.shaded.simpleconfigapi'
+
+    // Relocate packages to avoid conflicts
+    relocate 'org.yaml.snakeyaml', 'com.github.spacemex.skillexpnotifier.shaded.snakeyaml'
+    relocate 'com.github.spacemex.yml', 'com.github.spacemex.skillexpnotifier.shaded.yml'
+    relocate 'com.github.spacemex.simpleconfigapi', 'com.github.spacemex.skillexpnotifier.shaded.simpleconfigapi'
+
+    // Exclude unnecessary files
+    exclude "META-INF/LICENSE"
+    exclude "META-INF/LICENSE.txt"
+    exclude "META-INF/NOTICE"
+    exclude "META-INF/NOTICE.txt"
+    exclude "module-info.class"
+
+    // Merge service files correctly
+    mergeServiceFiles()
+
+}
+
+remapJar {
+    dependsOn shadowJar
+    input.set shadowJar.archiveFile
+}
+jar {
+    enabled = false
+}
